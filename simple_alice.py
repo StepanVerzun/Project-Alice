@@ -92,13 +92,18 @@ def handle_dialog(req, res):
                 "Четвертая.",
             ]
         }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '1533899/111916359298fd5d753b'
+        res['response']['card']['title'] = \
+            'По неизвестной тебе причине ты оказался в пустой комнате с 4 дверями. В какую дверь ты пойдешь?'
         res['response']['text'] = \
             'По неизвестной тебе причине ты оказался в пустой комнате с 4 дверями. В какую дверь ты пойдешь?'
         res['response']['buttons'] = get_suggests(user_id)
     else:
         res['response']['text'] = 'Еще увидимся!'
         res['response']['end_session'] = True
-        return
+    return
 
 
 # Функция возвращает подсказки для ответа.
