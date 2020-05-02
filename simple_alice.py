@@ -173,6 +173,32 @@ def handle_dialog(req, res):
             'Вдруг ты слышишь чей-то голос, и он спрашивает: "Что ты тут делаешь?" Что ты ему ответишь?'
         res['response']['text'] = 'четвертая комната'
         res['response']['buttons'] = get_suggests(user_id)
+    if room == 1:
+        sessionStorage[user_id] = {
+                'suggests': [
+                    "Первая.",
+                    "Вторая.",
+                    "Третья.",
+                    "Четвертая.",
+                ]
+            }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '1030494/54d252522a56d03b897a'
+        res['response']['text'] = 'первая комната'
+        res['response']['buttons'] = get_suggests(user_id)
+        if "Ничего" in req['request']['nlu']['tokens']:
+            score += 0
+            res['response']['card']['description'] = \
+                'Ну тогда иди в следующую комнату'
+        elif "Посмотришь внутрь автомобиля" in req['request']['nlu']['tokens']:
+            score += 1
+            res['response']['card']['description'] = \
+                'Ты нашел(-ла) на заднем сидении купюру. Какая дверь следующая?'
+        elif "Сядешь в автомобиль" in req['request']['nlu']['tokens']:
+            score += -1
+            res['response']['card']['description'] = \
+                'Включилась сигнализация, ты сбегаешь из гаража. В какую дверь дальше пойдешь?'
         return
 
 
