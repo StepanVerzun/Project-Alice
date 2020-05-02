@@ -18,6 +18,8 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 sessionStorage = {}
+room = 0
+score = 0
 
 
 @app.route('/post', methods=['POST'])
@@ -51,6 +53,7 @@ def main():
 
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
+    global room, score
 
     if req['session']['new']:
         # Это новый пользователь.
@@ -74,7 +77,7 @@ def handle_dialog(req, res):
     # Обрабатываем ответ пользователя.
     # В req['request']['original_utterance'] лежит весь текст,
     # что нам прислал пользователь
-    if req['request']['original_utterance'].lower() in [
+    if (req['request']['original_utterance'].lower() in [
         'ладно',
         'да',
         'давай',
@@ -82,7 +85,7 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ]:
+    ] or 'да' in req['request']['nlu']['tokens']) and room == 0:
         # Пользователь согласился, начинаем квест.
         sessionStorage[user_id] = {
             'suggests': [
@@ -92,6 +95,7 @@ def handle_dialog(req, res):
                 "Четвертая.",
             ]
         }
+
         res['response']['card'] = {}
         res['response']['card']['type'] = 'BigImage'
         res['response']['card']['image_id'] = '1533899/111916359298fd5d753b'
@@ -100,10 +104,76 @@ def handle_dialog(req, res):
         res['response']['text'] = \
             'По неизвестной тебе причине ты оказался в пустой комнате с 4 дверями. В какую дверь ты пойдешь?'
         res['response']['buttons'] = get_suggests(user_id)
-    else:
-        res['response']['text'] = 'Еще увидимся!'
-        res['response']['end_session'] = True
-    return
+        sessionStorage[user_id]['game_started'] = True
+    if 'первая' in req['request']['nlu']['tokens'] and room == 0:
+        room = 1
+        sessionStorage[user_id] = {
+            'suggests': [
+                "Ничего",
+                "Посмотришь внутрь автомобиля",
+                "Сядешь в автомобиль",
+            ]
+        }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '1030494/54d252522a56d03b897a'
+        res['response']['card']['title'] = 'Ты оказался(лась) в гараже.'
+        res['response']['card']['description'] = \
+            'Видишь перед собой красный автомобиль, в котором открыта дверь. Что ты сделаешь?'
+        res['response']['text'] = 'первая комната комната'
+        res['response']['buttons'] = get_suggests(user_id)
+    elif 'вторая' in req['request']['nlu']['tokens'] and room == 0:
+        room = 2
+        sessionStorage[user_id] = {
+            'suggests': [
+                "Осмотришь камин",
+                "Выпьешь напиток",
+                "Ничего",
+            ]
+        }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '213044/940eee14c76ec65cbbc1'
+        res['response']['card']['title'] = 'Ты попал(а) в комнату.'
+        res['response']['card']['description'] = \
+            'В центре стоит небольшой стол, а вокруг него диван и ещё 4 кресла, будто тут проводились какие-то важные встречи или собрания. Ты видишь, что на столе стоит бокал с напитком, а слева расположен камин, наполненный бревнами. Что ты сделаешь?'
+        res['response']['text'] = 'вторая комната'
+        res['response']['buttons'] = get_suggests(user_id)
+    elif 'третья' in req['request']['nlu']['tokens'] and room == 0:
+        room = 3
+        sessionStorage[user_id] = {
+            'suggests': [
+                "Снимешь ткань со стула",
+                "Посмотришься в зеркало",
+                "Ляжешь на кровать",
+            ]
+        }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '1656841/e9b28b88b3649bc0e693'
+        res['response']['card']['title'] = 'Ты оказался(лась) в довольно старой комнате.'
+        res['response']['card']['description'] = \
+            'Перед тобой стоят две красивые кровати, так и хочется лечь на них, отдохнуть. Рядом с кроватями стоит стул, на который накинута странная белая ткань. В левой части комнаты находится антикварное зеркало. Что ты сделаешь?'
+        res['response']['text'] = 'третья комната'
+        res['response']['buttons'] = get_suggests(user_id)
+    elif 'четвертая' in req['request']['nlu']['tokens'] and room == 0:
+        room = 4
+        sessionStorage[user_id] = {
+            'suggests': [
+                "Просто уйду из комнаты и ничего не отвечу",
+                '"Ничего, просто зашёл"',
+                '"Здравствуйте, извините за беспокойство, я по ошибке сюда зашёл(ла)"',
+            ]
+        }
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['image_id'] = '1030494/7d66f72baf9fe8dac989'
+        res['response']['card']['title'] = 'Ты вошёл(ла) в полностью темную комнату.'
+        res['response']['card']['description'] = \
+            'Вдруг ты слышишь чей-то голос, и он спрашивает: "Что ты тут делаешь?" Что ты ему ответишь?'
+        res['response']['text'] = 'четвертая комната'
+        res['response']['buttons'] = get_suggests(user_id)
+        return
 
 
 # Функция возвращает подсказки для ответа.
