@@ -76,7 +76,7 @@ def handle_dialog(req, res):
     # Обрабатываем ответ пользователя.
     # В req['request']['original_utterance'] лежит весь текст,
     # что нам прислал пользователь
-    if req['request']['original_utterance'].lower() in [
+    if ((req['request']['original_utterance'].lower() in [
         'ладно',
         'да',
         'давай',
@@ -84,24 +84,27 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ] and sessionStorage[user_id]['room_num'] == 0:
+    ] or 'да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room_num'] == 0)\
+            or ('назад' in req['request']['nlu']['tokens'] and sessionStorage[user_id]['room_num'] == 1):
+        sessionStorage[user_id]['room_num'] = 0
+        print(sessionStorage[user_id]['room_num'])
         sessionStorage[user_id]['suggests'] = [
-                "Первая.",
-                "Вторая.",
-                "Третья.",
-                "Четвертая."
-            ]
+            "Первая.",
+            "Вторая.",
+            "Третья.",
+        ]
 
         res['response']['card'] = {}
         res['response']['card']['type'] = 'BigImage'
         res['response']['card']['image_id'] = '1533899/111916359298fd5d753b'
-        res['response']['card']['title'] = \
-            'Ты оказался в пустой комнате с 3 дверями. В какую дверь ты пойдешь?'
+        res['response']['card']['title'] = 'Ты оказался в пустой комнате с 3 дверями. В какую дверь ты пойдешь?'
         res['response']['text'] = 'Нулевая комната'
         res['response']['buttons'] = get_suggests(user_id)
+        return
     if 'первая' in req['request']['nlu']['tokens'] and sessionStorage[user_id]['room_num'] == 0:
         sessionStorage[user_id]['room_num'] = 1
-        sessionStorage[user_id]['suggests']= [
+        print(sessionStorage[user_id]['room_num'])
+        sessionStorage[user_id]['suggests'] = [
                 "Ничего",
                 "Посмотришь внутрь автомобиля",
                 "Сядешь в автомобиль",
@@ -112,22 +115,22 @@ def handle_dialog(req, res):
         res['response']['card']['title'] = 'Ты оказался(лась) в гараже.'
         if sessionStorage[user_id]['room1']['lock']:
             res['response']['card']['description'] = \
-                'Видишь перед собой красный автомобиль, в котором открыта дверь. Что ты сделаешь?'
+                'Видишь перед собой красный автомобиль, в котором открыта дверь. Что ты сделаешь?' + str(sessionStorage[user_id]['room_num'])
         else:
             res['response']['card']['description'] = \
-                'Ты тут уже был. Твой выбор:' + room1['choice']
+                'Ты тут уже был. Твой выбор:' + sessionStorage[user_id]['room1']['choice']
         res['response']['text'] = sessionStorage[user_id]['room1']['title']
         res['response']['buttons'] = get_suggests(user_id)
         sessionStorage[user_id]['room1']['lock'] = False
+        return
     elif 'вторая' in req['request']['nlu']['tokens'] and sessionStorage[user_id]['room_num'] == 0:
         sessionStorage[user_id]['room_num'] = 2
-        sessionStorage[user_id] = {
-            'suggests': [
+        print(sessionStorage[user_id]['room_num'])
+        sessionStorage[user_id]['suggests'] = [
                 "Осмотришь камин",
                 "Выпьешь напиток",
                 "Ничего",
             ]
-        }
         res['response']['card'] = {}
         res['response']['card']['type'] = 'BigImage'
         res['response']['card']['image_id'] = '213044/940eee14c76ec65cbbc1'
@@ -136,15 +139,15 @@ def handle_dialog(req, res):
             'В центре стоит небольшой стол, а вокруг него диван и ещё 4 кресла, будто тут проводились какие-то важные встречи или собрания. Ты видишь, что на столе стоит бокал с напитком, а слева расположен камин, наполненный бревнами. Что ты сделаешь?'
         res['response']['text'] = 'вторая комната'
         res['response']['buttons'] = get_suggests(user_id)
+        return
     elif 'третья' in req['request']['nlu']['tokens'] and sessionStorage[user_id]['room_num'] == 0:
         sessionStorage[user_id]['room_num'] = 3
-        sessionStorage[user_id] = {
-            'suggests': [
+        print(sessionStorage[user_id]['room_num'])
+        sessionStorage[user_id]['suggests'] = [
                 "Снимешь ткань со стула",
                 "Посмотришься в зеркало",
                 "Ляжешь на кровать",
             ]
-        }
         res['response']['card'] = {}
         res['response']['card']['type'] = 'BigImage'
         res['response']['card']['image_id'] = '1656841/e9b28b88b3649bc0e693'
@@ -153,15 +156,15 @@ def handle_dialog(req, res):
             'Перед тобой стоят две красивые кровати, так и хочется лечь на них, отдохнуть. Рядом с кроватями стоит стул, на который накинута странная белая ткань. В левой части комнаты находится антикварное зеркало. Что ты сделаешь?'
         res['response']['text'] = 'третья комната'
         res['response']['buttons'] = get_suggests(user_id)
-    if 'посмотришь' in req['request']['nlu']['tokens'] and room_num == 1:
-        room1['choice'] = 'Посмотрел внутрь автомобиля'
+        return
+    if 'посмотришь' in req['request']['nlu']['tokens'] and sessionStorage[user_id]['room_num'] == 1:
+        print(sessionStorage[user_id]['room_num'])
+        sessionStorage[user_id]['room1']['choice'] = 'Посмотрел внутрь автомобиля'
         sessionStorage[user_id]['score'] += 1
-        sessionStorage[user_id] = {
-            'suggests': [
+        sessionStorage[user_id]['suggests'] = [
                 "Вернуться назад",
                 "Идти в следующую комнату",
             ]
-        }
         res['response']['text'] = 'Ты нашел на заднем сидении купюру. Куда дальше?'
         res['response']['buttons'] = get_suggests(user_id)
         return
