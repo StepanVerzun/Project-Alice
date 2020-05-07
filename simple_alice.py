@@ -4,6 +4,7 @@ import logging
 
 # библиотека, которая нам понадобится для работы с JSON
 import json
+from random import randint
 
 with open("rooms.txt", "r", encoding="utf-8") as file:
     rooms = json.loads(file.read())
@@ -20,8 +21,6 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 sessionStorage = {}
-active_room = '0'
-score = 0
 
 
 @app.route('/post', methods=['POST'])
@@ -55,7 +54,6 @@ def main():
 
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
-    global active_room, score
 
     if req['session']['new']:
         # Это новый пользователь.
@@ -64,10 +62,11 @@ def handle_dialog(req, res):
 
         sessionStorage[user_id] = {
             'rooms': [],
-            'room': None,
+            'room': "",
             'choice': False,
             'suggests': ["Да", "Не сегодня, друг."],
-            'start': False
+            'start': False,
+            'score': 0
         }
 
         # Заполняем текст ответа
@@ -89,9 +88,64 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ] or 'да' in req['request']['nlu']['tokens']) and active_room == 0:
-        pass
-        # Пользователь согласился, начинаем квест.
+    ] or 'да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
+        # Пользователь согласился, начинаем квест
+        active_room = "0"
+        sessionStorage[user_id] = {
+            'rooms': [],
+            'room': active_room,
+            'choice': True,
+            'suggests': rooms[active_room]["actions"],
+            'start': True,
+            'score': 0
+        }
+        res['response']['text'] = rooms[active_room]["description"]
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+
+    if sessionStorage[user_id]['choice']:
+        if len(sessionStorage[user_id]['rooms']) == 5:
+            sessionStorage[user_id] = {
+                'rooms': [],
+                'room': "",
+                'choice': True,
+                'suggests': ["Да", "Нет"],
+                'start': False,
+                'score': sessionStorage[user_id]['score']
+            }
+            if sessionStorage[user_id]['score'] <= -3:
+                res['response']['text'] = rooms['ending']["bad"]
+            elif -2 <= sessionStorage[user_id]['score'] <= 2:
+                res['response']['text'] = rooms['ending']["middle"]
+            elif sessionStorage[user_id]['score'] >= 3:
+                res['response']['text'] = rooms['ending']["good"]
+            res['response']['buttons'] = get_suggests(user_id)
+            return
+        while True:
+            active_room = randint(1, 2)
+            if active_room not in sessionStorage[user_id]['rooms']:
+                break
+        sessionStorage[user_id] = {
+            'rooms': sessionStorage[user_id]['rooms'] + [active_room],
+            'room': active_room,
+            'choice': False,
+            'suggests': rooms[active_room]["actions"],
+            'start': True,
+            'score': sessionStorage[user_id]['score']
+        }
+        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["description"]
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+    elif not sessionStorage[user_id]['choice']:
+        sessionStorage[user_id]['choice'] = True
+        sessionStorage[user_id]['suggests'] = rooms[sessionStorage[user_id]['0']]["actions"]
+        sessionStorage[user_id]['score'] += rooms[sessionStorage[user_id]['room']]["points"]
+        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["answers"]
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+
+
+
 
 
 # Функция возвращает подсказки для ответа.
