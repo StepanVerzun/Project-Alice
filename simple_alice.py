@@ -62,7 +62,14 @@ def handle_dialog(req, res):
         # Инициализируем сессию и поприветствуем его.
         # Запишем подсказки, которые мы ему покажем в первый раз
 
-        sessionStorage[user_id] = ["Да", "Не сегодня, друг."]
+        sessionStorage[user_id] = {
+            'rooms': [],
+            'room': None,
+            'choice': False,
+            'suggests': ["Да", "Не сегодня, друг."],
+            'start': False
+        }
+
         # Заполняем текст ответа
         res['response']['text'] = 'Приветствую тебя в текстовом квесте *название*! Готов ли ты начать игру?'
         # Получим подсказки
@@ -83,28 +90,8 @@ def handle_dialog(req, res):
         'начать',
         'конечно'
     ] or 'да' in req['request']['nlu']['tokens']) and active_room == 0:
+        pass
         # Пользователь согласился, начинаем квест.
-        rooms[active_room]['open'] = True
-        sessionStorage[user_id] = rooms[active_room]['actions']
-        res['response']['card'] = {}
-        res['response']['card']['type'] = 'BigImage'
-        res['response']['card']['image_id'] = '1533899/111916359298fd5d753b'
-        res['response']['card']['title'] = rooms[active_room]['title']
-        res['response']['text'] = rooms[active_room]['description']
-        res['response']['buttons'] = get_suggests(user_id)
-        rooms[active_room]['choice'] = True
-        sessionStorage[user_id]['game_started'] = True
-    if 'спереди' in req['request']['nlu']['tokens'] and active_room == 0:
-        active_room = 1
-        sessionStorage[user_id] = rooms[active_room]['actions']
-        res['response']['card'] = {}
-        res['response']['card']['type'] = 'BigImage'
-        res['response']['card']['image_id'] = '1030494/54d252522a56d03b897a'
-        res['response']['card']['title'] = rooms[active_room]['title']
-        res['response']['text'] = rooms[active_room]['description']
-        res['response']['buttons'] = get_suggests(user_id)
-        rooms[active_room]['choice'] = True
-        return
 
 
 # Функция возвращает подсказки для ответа.
@@ -112,7 +99,7 @@ def get_suggests(user_id):
     session = sessionStorage[user_id]
     suggests = [
         {'title': suggest, 'hide': True}
-        for suggest in session
+        for suggest in session['suggests']
     ]
 
     return suggests
