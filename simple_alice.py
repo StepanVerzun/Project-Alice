@@ -137,7 +137,7 @@ def handle_dialog(req, res):
         res['response']['buttons'] = get_suggests(user_id)
         return
     elif not sessionStorage[user_id]['choice']:
-        answer = req['request']['nlu']['tokens']
+        answer = req['request']['original_utterance']
         sessionStorage[user_id]['choice'] = True
         sessionStorage[user_id]['suggests'] = rooms[sessionStorage[user_id]['0']]["actions"]
         sessionStorage[user_id]['score'] += rooms[sessionStorage[user_id]['room']]["points"][answer]
