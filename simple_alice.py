@@ -6,7 +6,7 @@ import logging
 import json
 from random import randint
 
-with open("rooms.txt", "r", encoding="utf-8") as file:
+with open("rooms.json", "r", encoding="utf-8") as file:
     rooms = json.loads(file.read())
 # создаём приложение
 # мы передаём __name__, в нем содержится информация,
@@ -88,7 +88,7 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ] or 'да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
+    ] or 'Да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
         # Пользователь согласился, начинаем квест
         active_room = "0"
         sessionStorage[user_id] = {
@@ -102,7 +102,9 @@ def handle_dialog(req, res):
         res['response']['text'] = rooms[active_room]["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
-
+    elif 'Нет' in req['request']['nlu']['tokens'] or 'Не сегодня, друг.' in req['request']['nlu']['tokens']:
+        res['response']['text'] = 'Еще увидимся!'
+        return
     if sessionStorage[user_id]['choice']:
         if len(sessionStorage[user_id]['rooms']) == 5:
             sessionStorage[user_id] = {
@@ -119,6 +121,7 @@ def handle_dialog(req, res):
                 res['response']['text'] = rooms['ending']["middle"]
             elif sessionStorage[user_id]['score'] >= 3:
                 res['response']['text'] = rooms['ending']["good"]
+            res['response']['text'] += 'Хочешь еще раз пройти этот квест'
             res['response']['buttons'] = get_suggests(user_id)
             return
         while True:
@@ -144,9 +147,6 @@ def handle_dialog(req, res):
         res['response']['text'] = rooms[sessionStorage[user_id]['room']]["answers"][answer]
         res['response']['buttons'] = get_suggests(user_id)
         return
-
-
-
 
 
 # Функция возвращает подсказки для ответа.
