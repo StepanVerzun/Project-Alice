@@ -65,7 +65,6 @@ def handle_dialog(req, res):
             'room': "",
             'choice': False,
             'suggests': ["Да", "Не сегодня, друг."],
-            'start': False,
             'score': 0
         }
 
@@ -88,21 +87,15 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ] or 'Да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
+    ] or 'да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
         # Пользователь согласился, начинаем квест
-        active_room = "0"
-        sessionStorage[user_id] = {
-            'rooms': [],
-            'room': active_room,
-            'choice': True,
-            'suggests': rooms[active_room]["actions"],
-            'start': True,
-            'score': 0
-        }
-        res['response']['text'] = rooms[active_room]["description"]
+        sessionStorage[user_id]['room'] = '0'
+        sessionStorage[user_id]['choice'] = True
+        sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
+        res['response']['text'] = rooms['0']["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
-    elif 'Нет' in req['request']['nlu']['tokens'] or 'Не сегодня, друг.' in req['request']['nlu']['tokens']:
+    elif 'нет' in req['request']['nlu']['tokens'] or 'не' in req['request']['nlu']['tokens']:
         res['response']['text'] = 'Еще увидимся!'
         res['response']['end_session'] = True
         return
@@ -116,14 +109,9 @@ def handle_dialog(req, res):
         return
     elif sessionStorage[user_id]['choice']:
         if len(sessionStorage[user_id]['rooms']) == 5:
-            sessionStorage[user_id] = {
-                'rooms': [],
-                'room': "",
-                'choice': True,
-                'suggests': ["Да", "Нет"],
-                'start': False,
-                'score': sessionStorage[user_id]['score']
-            }
+            sessionStorage[user_id]['rooms'] = []
+            sessionStorage[user_id]['room'] = ''
+            sessionStorage[user_id]['suggests'] = ["Да", "Нет"]
             if sessionStorage[user_id]['score'] <= -3:
                 res['response']['text'] = rooms['ending']["bad"]
             elif -2 <= sessionStorage[user_id]['score'] <= 2:
