@@ -80,7 +80,7 @@ def handle_dialog(req, res):
     # Обрабатываем ответ пользователя.
     # В req['request']['original_utterance'] лежит весь текст,
     # что нам прислал пользователь
-    if (req['request']['original_utterance'].lower() in [
+    elif (req['request']['original_utterance'].lower() in [
         'ладно',
         'да',
         'давай',
@@ -106,7 +106,15 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Еще увидимся!'
         res['response']['end_session'] = True
         return
-    if sessionStorage[user_id]['choice']:
+    elif not sessionStorage[user_id]['choice']:
+        answer = req['request']['original_utterance']
+        sessionStorage[user_id]['choice'] = True
+        sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
+        sessionStorage[user_id]['score'] += rooms[sessionStorage[user_id]['room']]["points"][answer]
+        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["answers"][answer]
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+    elif sessionStorage[user_id]['choice']:
         if len(sessionStorage[user_id]['rooms']) == 5:
             sessionStorage[user_id] = {
                 'rooms': [],
@@ -134,14 +142,6 @@ def handle_dialog(req, res):
         sessionStorage[user_id]['choice'] = False
         sessionStorage[user_id]['suggests'] = rooms[str(active_room)]["actions"]
         res['response']['text'] = rooms[sessionStorage[user_id]['room']]["description"]
-        res['response']['buttons'] = get_suggests(user_id)
-        return
-    elif not sessionStorage[user_id]['choice']:
-        answer = req['request']['original_utterance']
-        sessionStorage[user_id]['choice'] = True
-        sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
-        sessionStorage[user_id]['score'] += rooms[sessionStorage[user_id]['room']]["points"][answer]
-        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["answers"][answer]
         res['response']['buttons'] = get_suggests(user_id)
         return
 
