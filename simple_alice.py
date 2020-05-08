@@ -100,11 +100,12 @@ def handle_dialog(req, res):
         res['response']['end_session'] = True
         return
     elif not sessionStorage[user_id]['choice']:
+        active_room = sessionStorage[user_id]['room']
         answer = req['request']['original_utterance']
         sessionStorage[user_id]['choice'] = True
         sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
-        sessionStorage[user_id]['score'] += rooms[sessionStorage[user_id]['room']]["points"][answer]
-        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["answers"][answer]
+        sessionStorage[user_id]['score'] += rooms[active_room]["points"][answer]
+        res['response']['text'] = rooms[active_room]["answers"][answer]
         res['response']['buttons'] = get_suggests(user_id)
         return
     elif sessionStorage[user_id]['choice']:
@@ -118,18 +119,18 @@ def handle_dialog(req, res):
                 res['response']['text'] = rooms['ending']["middle"]
             elif sessionStorage[user_id]['score'] >= 3:
                 res['response']['text'] = rooms['ending']["good"]
-            res['response']['text'] += 'Хочешь еще раз пройти этот квест'
+            res['response']['text'] += ' Хочешь еще раз пройти этот квест'
             res['response']['buttons'] = get_suggests(user_id)
             return
         while True:
             active_room = randint(1, 7)
             if str(active_room) not in sessionStorage[user_id]['rooms']:
+                sessionStorage[user_id]['rooms'].append(str(active_room))
                 break
-        sessionStorage[user_id]['rooms'] += str(active_room)
         sessionStorage[user_id]['room'] = str(active_room)
         sessionStorage[user_id]['choice'] = False
         sessionStorage[user_id]['suggests'] = rooms[str(active_room)]["actions"]
-        res['response']['text'] = rooms[sessionStorage[user_id]['room']]["description"]
+        res['response']['text'] = rooms[str(active_room)]["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
 
