@@ -129,14 +129,10 @@ def handle_dialog(req, res):
             active_room = randint(1, 7)
             if str(active_room) not in sessionStorage[user_id]['rooms']:
                 break
-        sessionStorage[user_id] = {
-            'rooms': sessionStorage[user_id]['rooms'] + [str(active_room)],
-            'room': str(active_room),
-            'choice': False,
-            'suggests': rooms[str(active_room)]["actions"],
-            'start': True,
-            'score': sessionStorage[user_id]['score']
-        }
+        sessionStorage[user_id]['rooms'] += str(active_room)
+        sessionStorage[user_id]['room'] = str(active_room)
+        sessionStorage[user_id]['choice'] = False
+        sessionStorage[user_id]['suggests'] = rooms[str(active_room)]["actions"]
         res['response']['text'] = rooms[sessionStorage[user_id]['room']]["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
