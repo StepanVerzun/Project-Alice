@@ -104,6 +104,7 @@ def handle_dialog(req, res):
         return
     elif 'Нет' in req['request']['nlu']['tokens'] or 'Не сегодня, друг.' in req['request']['nlu']['tokens']:
         res['response']['text'] = 'Еще увидимся!'
+        res['response']['end_session'] = True
         return
     if sessionStorage[user_id]['choice']:
         if len(sessionStorage[user_id]['rooms']) == 5:
@@ -156,7 +157,6 @@ def get_suggests(user_id):
         {'title': suggest, 'hide': True}
         for suggest in session['suggests']
     ]
-
     return suggests
 
 
