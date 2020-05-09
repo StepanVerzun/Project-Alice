@@ -65,7 +65,8 @@ def handle_dialog(req, res):
             'room': "",
             'choice': False,
             'suggests': ["Да", "Не сегодня, друг."],
-            'score': 0
+            'score': 0,
+            'start': False
         }
 
         # Заполняем текст ответа
@@ -89,13 +90,15 @@ def handle_dialog(req, res):
         'конечно'
     ] or 'да' in req['request']['nlu']['tokens']:
         # Пользователь согласился, начинаем квест
+        sessionStorage[user_id]['start'] = True
         sessionStorage[user_id]['room'] = "0"
         sessionStorage[user_id]['choice'] = True
         sessionStorage[user_id]['suggests'] = rooms["0"]["actions"]
         res['response']['text'] = rooms["0"]["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
-    elif 'нет' in req['request']['nlu']['tokens'] or 'не' in req['request']['nlu']['tokens']:
+    elif (('нет' in req['request']['nlu']['tokens'] or
+           'не' in req['request']['nlu']['tokens']) and not sessionStorage[user_id]['start']):
         res['response']['text'] = 'Еще увидимся!'
         res['response']['end_session'] = True
         return
