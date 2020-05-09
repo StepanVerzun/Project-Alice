@@ -79,7 +79,7 @@ def handle_dialog(req, res):
     # Обрабатываем ответ пользователя.
     # В req['request']['original_utterance'] лежит весь текст,
     # что нам прислал пользователь
-    elif (req['request']['original_utterance'].lower() in [
+    elif req['request']['original_utterance'].lower() in [
         'ладно',
         'да',
         'давай',
@@ -87,7 +87,7 @@ def handle_dialog(req, res):
         'старт',
         'начать',
         'конечно'
-    ] or 'да' in req['request']['nlu']['tokens']) and sessionStorage[user_id]['room'] == "":
+    ] or 'да' in req['request']['nlu']['tokens']:
         # Пользователь согласился, начинаем квест
         sessionStorage[user_id]['room'] = '0'
         sessionStorage[user_id]['choice'] = True
