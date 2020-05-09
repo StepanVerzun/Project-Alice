@@ -89,10 +89,10 @@ def handle_dialog(req, res):
         'конечно'
     ] or 'да' in req['request']['nlu']['tokens']:
         # Пользователь согласился, начинаем квест
-        sessionStorage[user_id]['room'] = '0'
+        sessionStorage[user_id]['room'] = "0"
         sessionStorage[user_id]['choice'] = True
-        sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
-        res['response']['text'] = rooms['0']["description"]
+        sessionStorage[user_id]['suggests'] = rooms["0"]["actions"]
+        res['response']['text'] = rooms["0"]["description"]
         res['response']['buttons'] = get_suggests(user_id)
         return
     elif 'нет' in req['request']['nlu']['tokens'] or 'не' in req['request']['nlu']['tokens']:
@@ -103,7 +103,7 @@ def handle_dialog(req, res):
         active_room = sessionStorage[user_id]['room']
         answer = req['request']['original_utterance']
         sessionStorage[user_id]['choice'] = True
-        sessionStorage[user_id]['suggests'] = rooms['0']["actions"]
+        sessionStorage[user_id]['suggests'] = rooms["0"]["actions"]
         sessionStorage[user_id]['score'] += rooms[active_room]["points"][answer]
         res['response']['text'] = rooms[active_room]["answers"][answer]
         res['response']['buttons'] = get_suggests(user_id)
@@ -114,11 +114,11 @@ def handle_dialog(req, res):
             sessionStorage[user_id]['room'] = ''
             sessionStorage[user_id]['suggests'] = ["Да", "Нет"]
             if sessionStorage[user_id]['score'] <= -3:
-                res['response']['text'] = rooms['ending']["bad"]
+                res['response']['text'] = rooms["ending"]["bad"]
             elif -2 <= sessionStorage[user_id]['score'] <= 2:
-                res['response']['text'] = rooms['ending']["middle"]
+                res['response']['text'] = rooms["ending"]["middle"]
             elif sessionStorage[user_id]['score'] >= 3:
-                res['response']['text'] = rooms['ending']["good"]
+                res['response']['text'] = rooms["ending"]["good"]
             res['response']['text'] += ' Хочешь еще раз пройти этот квест'
             res['response']['buttons'] = get_suggests(user_id)
             return
